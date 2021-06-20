@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="Hello World, David&#39;s blog">
+    <meta name="keywords" content="pwn一点一点概括, David&#39;s blog">
     <meta name="description" content="�Ǻ��ǻ�������һ�����ˡ�">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>Hello World | David&#39;s blog</title>
+    <title>pwn一点一点概括 | David&#39;s blog</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -310,12 +310,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/12.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/11.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">Hello World</h1>
+                    <h1 class="description center-align post-title">pwn一点一点概括</h1>
                 </div>
             </div>
         </div>
@@ -429,9 +429,13 @@
             <div class="row tag-cate">
                 <div class="col s7">
                     
-                          <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
-                          </div>
+                    <div class="article-tag">
+                        
+                            <a href="/tags/pwn/">
+                                <span class="chip bg-color">pwn</span>
+                            </a>
+                        
+                    </div>
                     
                 </div>
                 <div class="col s5 right-align">
@@ -464,19 +468,194 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><pre class=" language-bash"><code class="language-bash">$ hexo new <span class="token string">"My New Post"</span>
+                <h1 id="IDA-基操"><a href="#IDA-基操" class="headerlink" title="IDA 基操"></a>IDA 基操</h1><p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/t/4205">教程</a></p>
+<ol>
+<li>shift+F12 查看string信息 (通常可以看到重要的信息 )</li>
+<li>Alt + T 查找带有目标字符串的函数</li>
+<li>F5 查看 C代码</li>
+<li>Ctrl + F 在函数框中 搜索函数</li>
+<li>空格键 流程图与代码 来回切换.</li>
+<li>Ctrl + S 打开segment表,调出程序的表段<h1 id="一些段"><a href="#一些段" class="headerlink" title="一些段"></a>一些段</h1></li>
+<li>BSS段：BSS段（bss segment）通常是指用来存放程序中未初始化的全局变量的一块内存区域。BSS是英文Block Started by Symbol的简称。BSS段属于静态内存分配。</li>
+<li>数据段：数据段（data segment）通常是指用来存放程序中已初始化的全局变量的一块内存区域。数据段属于静态内存分配。</li>
+<li>代码段：代码段（code segment/text segment）通常是指用来存放程序执行代码的一块内存区域。这部分区域的大小在程序运行前就已经确定</li>
+</ol>
+<ul>
+<li>并且内存区域通常属于只读, 某些架构允许代码段为可写，即允许修改程序。在代码段中，也有可能包含一些只读的常数变量，例如字符串常量等。</li>
+</ul>
+<ol start="4">
+<li>堆</li>
+<li>栈<h1 id="bss段未授权"><a href="#bss段未授权" class="headerlink" title=".bss段未授权"></a>.bss段未授权</h1></li>
+</ol>
+<ul>
+<li>首先利用了mprotect函数修改内存权限，然后利用read读取shellcode到该内存区域。整体是利用了ROP链的思想，由于开启了NX保护，所以不断利用retn返回地址来达到调用函数，注入shellcode的目的。  <h2 id="mprotect函数-原型如下"><a href="#mprotect函数-原型如下" class="headerlink" title="mprotect函数:原型如下"></a>mprotect函数:原型如下</h2><blockquote>
+<p>int mprotect(void *addr, size_t len, int prot);<br>addr 内存启始地址<br>len  修改内存的长度<br>prot 内存的权限：prot取值：<br>1）PROT_READ：表示内存段内的内容可写；<br>2）PROT_WRITE：表示内存段内的内容可读；<br>3）PROT_EXEC：表示内存段中的内容可执行；<br>4）PROT_NONE：表示内存段中的内容根本没法访问。<br>需要指出的是，指定的内存区间必须包含整个内存页（4K）。区间开始的地址start必须是一个内存页的起始地址，并且区间长度len必须是页大小的整数倍。<br>人话：最后三位要000</p>
+</blockquote>
+</li>
+</ul>
+<h1 id="exp脚本-pwn库"><a href="#exp脚本-pwn库" class="headerlink" title="exp脚本 pwn库"></a>exp脚本 pwn库</h1><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/6e528b33e37a">pwn基础知识笔记</a><br><a target="_blank" rel="noopener" href="https://bbs.ichunqiu.com/blog-113253-1247.html">python3 bytes str</a></p>
+<h1 id="栈溢出"><a href="#栈溢出" class="headerlink" title="栈溢出"></a>栈溢出</h1><h2 id="函数调用栈"><a href="#函数调用栈" class="headerlink" title="函数调用栈"></a>函数调用栈</h2><ul>
+<li><p>栈帧格式：</p>
+</li>
+<li><ul>
+<li>高</li>
+</ul>
+</li>
+<li><ul>
+<li>参数</li>
+</ul>
+</li>
+<li><ul>
+<li>返回地址</li>
+</ul>
+</li>
+<li><ul>
+<li>ebp</li>
+</ul>
+</li>
+<li><ul>
+<li>局部变量</li>
+</ul>
+</li>
+<li><ul>
+<li>esp</li>
+</ul>
+</li>
+<li><ul>
+<li>低</li>
+</ul>
+</li>
+<li><p>首先将被调用函数（callee）的参数按照逆序依次压入栈内。如果被调用函数（callee）不需要参数，则没有这一步骤。这些参数仍会保存在调用函数（caller）的函数状态内，之后压入栈内的数据都会作为被调用函数（callee）的函数状态来保存。  </p>
+</li>
+<li><p>然后将调用函数（caller）进行调用之后的下一条指令地址作为返回地址压入栈内。这样调用函数（caller）的 eip（指令）信息得以保存  </p>
+</li>
+<li><p>再将当前的ebp 寄存器的值（也就是调用函数的基地址）压入栈内，并将 ebp 寄存器的值更新为当前栈顶的地址。这样调用函数（caller）的 ebp（基地址）信息得以保存。同时，ebp 被更新为被调用函数（callee）的基地址。  </p>
+</li>
+<li><p> 将调用函数的基地址（ebp）压入栈内，并将当前栈顶地址传到 ebp 寄存器内</p>
+</li>
+<li><p>再之后是将被调用函数（callee）的局部变量等数据压入栈内。</p>
+</li>
+<li><p>将被调用函数的局部变量压入栈内</p>
+</li>
+<li><p> 将被调用函数的局部变量弹出栈外</p>
+</li>
+<li><p>将调用函数（caller）的基地址（ebp）弹出栈外，并存到 ebp 寄存器内</p>
+</li>
+<li><p>再将返回地址从栈内弹出，并存到 eip 寄存器内。这样调用函数（caller）的 eip（指令）信息得以恢复。</p>
+</li>
+<li><p>将被调用函数的返回地址弹出栈外，并存到 eip 寄存器内<br><img src="2.jpg" alt="Alt text"><br><img src="3.jpg" alt="Alt text"></p>
+</li>
+</ul>
+<h1 id="指令"><a href="#指令" class="headerlink" title="指令"></a>指令</h1><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/longintchar/article/details/50989444?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522162383983616780357221279%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=162383983616780357221279&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~sobaiduend~default-3-50989444.pc_search_result_before_js&utm_term=ret%E6%8C%87%E4%BB%A4&spm=1018.2226.3001.4187">详细</a></p>
+<ul>
+<li><p>每个函数调用过程在栈中被抽象成一帧 </p>
+</li>
+<li><p>CALL指令的步骤：首先是将返回地址（也就是call指令要执行时EIP的值）压入栈顶，然后是将程序跳转到当前调用的方法的起始地址。执行push和jump指令。</p>
+</li>
+<li><p>RET指令则是将栈顶的返回地址弹出到EIP，然后按照EIP此时指示的指令地址继续执行程序。<br>32位程序传参不用借用寄存器，但是为了能够继续控制程序，需要用到ret指令<br>而每次调用函数后都是返回到pop_3_ret中执行，是用该段汇编代码弹出压入栈中的三个参数来达到栈平衡。</p>
+</li>
+<li><p>LEAVE指令是将栈指针指向帧指针，然后POP备份的原帧指针到EBP。<br>Leave等价于：<br>mov ebp esp<br>pop ebp</p>
+<h1 id="get-read-setvbuf-write"><a href="#get-read-setvbuf-write" class="headerlink" title="get read setvbuf write"></a>get read setvbuf write</h1></li>
+<li><p>栈溢出。填满栈，再写入跳转地址</p>
+<blockquote>
+<p>READ() 函数： ssize_t read(int fd,void*buf,size_t count)<br>fd:      是文件描述符，对应0<br>buf:     为读出数据的缓冲区；<br>count:   为每次读取的字节数（是请求读取的字节数，读上来的数据保</p>
+<pre><code>   存在缓冲区buf中，同时文件的当前读写位置向后移）
 </code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><pre class=" language-bash"><code class="language-bash">$ hexo server
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><pre class=" language-bash"><code class="language-bash">$ hexo generate
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><pre class=" language-bash"><code class="language-bash">$ hexo deploy
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+</blockquote>
+</li>
+<li><p>read函数会读取我们在屏幕上输入的内容，但不会检查内容的多少，全部复制到buf里，如果超出buf的范围，会造成溢出  </p>
+</li>
+<li><p>int setvbuf(FILE *stream, char *buffer, int mode, size_t size)<br>将使得打开文件后，用户可建立自己的文件缓冲区 size 就是大小</p>
+</li>
+<li><p>ssize_t write(int fd, const void *buf, size_t nbyte);<br>fd：文件描述符；<br>buf：指定的缓冲区，即指针，指向一段内存单元；<br>nbyte：要写入文件指定的字节数；<br>返回值：写入文档的字节数（成功）；-1（出错）</p>
+<h1 id="NX（又称DEP）"><a href="#NX（又称DEP）" class="headerlink" title="NX（又称DEP）"></a>NX（又称DEP）</h1></li>
+<li><p>数据执行保护。可写的不可执行，可执行的不可写  </p>
+<h1 id="libc"><a href="#libc" class="headerlink" title="libc"></a>libc</h1><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_51032807/article/details/114808339">这个网站找的</a></p>
+</li>
+<li><p>libc是Linux系统下的c函数库，既然是函数库就会存在system函数，binsh参数  </p>
+</li>
+<li><p>找到库里面的偏移量，就可以执行后门函数<br><img src="5.png" alt="Alt text"></p>
+</li>
+<li><p>xxx@plt -&gt; xxx@got -&gt; xxx@plt -&gt; 公共 @plt -&gt; _dl_runtime_resolve</p>
+<h2 id="存在溢出条件"><a href="#存在溢出条件" class="headerlink" title="存在溢出条件"></a>存在溢出条件</h2></li>
+<li><p>题目没有system等后门函数，并且开启了NX保护</p>
+<h2 id="解题思路"><a href="#解题思路" class="headerlink" title="解题思路"></a>解题思路</h2></li>
+<li><p>首先要明白我们的目的是找到system函数以及binsh参数的地址。</p>
+</li>
+<li><p>基地址：基地址在同一次运行时是相同的，但第二次运行就不同了，所以造成了函数的真正地址一直在变，但即使一直在变，最后三位却一直相同。这样只要知道某个函数的某一次地址，利用它的后三位，然后在<a target="_blank" rel="noopener" href="https://libc.blukat.me/">这个网站</a>，就能获得libc版本  </p>
+</li>
+</ul>
+<h2 id="plt存放的是进入这个函数的函数地址"><a href="#plt存放的是进入这个函数的函数地址" class="headerlink" title="plt存放的是进入这个函数的函数地址"></a>plt存放的是进入这个函数的函数地址</h2><h2 id="got表中存放的是这个函数的真正地址。"><a href="#got表中存放的是这个函数的真正地址。" class="headerlink" title="got表中存放的是这个函数的真正地址。"></a>got表中存放的是这个函数的真正地址。</h2><ul>
+<li>我们可以利用puts函数，write函数等函数打印它自己的真正的地址，然后找到libc版本，基地址，然后找到system函数地址<blockquote>
+<p>puts_plt_addr = e.plt[“puts”]<br>puts_got_addr = e.got[“puts”]<br>main_addr = e.symbols[“main”]  （打印函数用symbols）</p>
+</blockquote>
+</li>
+<li>结合栈帧构造payload<h1 id="格式化字符串漏洞"><a href="#格式化字符串漏洞" class="headerlink" title="格式化字符串漏洞"></a>格式化字符串漏洞</h1></li>
+<li>在C语言中，有很多输入输出函数使用格式化字符串作为规范输入输出的格式。 c语言允许以$符号作为变量名的开头</li>
+<li>char str[12]=”fmtstr”;<br>printf(str);<br>将字符串的输入权交给用户就会有问题<br> 这时，如果这个str是我们用户输入可控的，那么这就存在了一个格式化字符串漏洞,这时攻击者将有机会对任意内存地址进行读写操作；</li>
+<li>printf(“%d” “%x” “%c” “%s”,a,b,c,d);</li>
+<li><ul>
+<li>%n 到目前为止所输出的字符数(把一个int值写到指定的地址去)<blockquote>
+<p>#include&lt;stdio.h&gt;<br>int main() {<br>int a,b,c;<br>printf(“ABC%nEFG%n\n”,&amp;a,&amp;b);<br>printf(“%123c%n\n”,’a’,&amp;c);<br>printf(“a=%d b=%d c=%d\n”,a,b,c);<br>return 0;<br>}</p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<p>输出结果：a=3 b=6 c=123</p>
+<ul>
+<li><p>这是因为printf函数并不知道参数个数，它的内部有个指针，用来索检格式化字符串。对于特定类型%，就去取相应参数的值，直到索检到格式化字符串结束。</p>
+</li>
+<li><p>所以尽管没有参数，上面的代码也会将format string 后面的内存当做参数以16进制输出。这样就会造成内存泄露。</p>
+<blockquote>
+<p>#include &lt;stdio.h&gt;<br>int main()<br>{<br>char a[100];<br>scanf(“%s”,a);<br>printf(a);  // a 如果是%x%x%x,就会打印后面三个十六进制地址值<br>return 0;<br>}</p>
+</blockquote>
+</li>
+</ul>
+<h1 id="Canary保护机制："><a href="#Canary保护机制：" class="headerlink" title="Canary保护机制："></a>Canary保护机制：</h1><ul>
+<li><p>1、 在所有函数调用发生时，向栈帧内压入一个额外的随机 DWORD，这个随机数被称作“canary”，<br>用 IDA 反汇编时，又被称作“Security Cookie”。    </p>
+</li>
+<li><p>2、 canary 位于 EBP 之前，系统还会在.data 的内存区域中存放一个 canary 的副本。  </p>
+</li>
+<li><p>3、 当栈中发生溢出时，canary 将被首先淹没，之后才是 EBP 和返回地址。  </p>
+</li>
+<li><p>4、 在函数返回之前，系统将执行一个额外的安全验证操作，称作 Security Check。  </p>
+</li>
+<li><p>5、在 Security Check 过程中，系统将比较栈帧中原先存放的 canary 和.data 中副本的值，若两者不同，则说明栈中发生了溢出，系统将进入异常处理流程，函数不会正常返回。<br><img src="1_1.png" alt="Alt text"></p>
+</li>
+<li><p>6根据原理看出 canary code 不能防止函数返回地址前的缓冲区溢出。   </p>
+</li>
+<li><ul>
+<li>可利用未保护内存绕过 canary 机制，由于缓冲区不是 8 字节类型且大小</li>
+</ul>
+</li>
+<li><ul>
+<li>不大于 4 个字节可通过缓冲区不大于 4 字节的栈溢出直接绕过，此部分不经过 canary 保护   </li>
+</ul>
+</li>
+<li><ul>
+<li>可能根据不同机器栈地址的增长机制或不同分配影响 canary code 的保护功能。</li>
+</ul>
+</li>
+</ul>
+<h1 id="gdb"><a href="#gdb" class="headerlink" title="gdb"></a>gdb</h1><ul>
+<li>(gdb)x/1xb  0x7fffffffd708      显示0x7fffffffd708（address）处1个(n)1字节(u)的内容，以十六进制(x)表示；</li>
+<li><ul>
+<li>1:显示一个   x：以十六进制显示   b：一个字节</li>
+</ul>
+</li>
+<li>objdump 反汇编代码<h1 id="ROPgadget工具"><a href="#ROPgadget工具" class="headerlink" title="ROPgadget工具"></a>ROPgadget工具</h1></li>
+<li> ROPgadget –binary rop  –only ‘pop|ret’ | grep ‘eax’<br>查找可存储寄存器的代码      </li>
+<li>ROPgadget –binary rop –string “/bin/sh”<br>查找字符串  </li>
+<li>ROPgadget –binary rop  –only ‘int’<br>查找有int 0x80的地址<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1></li>
+<li>strcmp()比较的字符串如果长度为0，返回  0  </li>
+<li>有时直接栈溢出(函数远端无法正常退出)，不能正确得到结果，原因是必须维护好栈。所以找一个函数来退出。于是可以利用exit函数</li>
+<li>阅读程序有时候可以发现没有ebp。eg：get_started_3dsctf_2016</li>
+<li>栈最下面的sr就是ebp和返回地址哦</li>
+<li>r.sendline(asm(shellcraft.sh()))<br>#shellcode可以利用pwntools直接生成<br>#shellcode=asm（shellcraft.sh()）</li>
+<li>查看带有?标志的地址，说明未使用过。</li>
+<li>(以0xf7打头的地址是libc中函数的地址，而以0x80打头的是elf文件本身的plt地址)</li>
+</ul>
 
                 
             </div>
@@ -503,7 +682,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="https://Davidzwy.github.io/2021/06/20/hello-world/">https://Davidzwy.github.io/2021/06/20/hello-world/</a>
+                    <a href="https://Davidzwy.github.io/2021/06/20/1/">https://Davidzwy.github.io/2021/06/20/1/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -540,7 +719,11 @@
                 <div class="post-meta__tag-list" style="display: inline-block;">
                     
                         <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
+                            
+                                <a href="/tags/pwn/">
+                                    <span class="chip bg-color">pwn</span>
+                                </a>
+                            
                         </div>
                     
                 </div>
@@ -714,13 +897,13 @@
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/2021/06/20/1/">
+                <a href="/2021/06/20/%E5%9F%BA%E7%A1%80%E5%87%BD%E6%95%B0/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/11.jpg" class="responsive-img" alt="pwn一点一点概括">
+                        <img src="/medias/featureimages/9.jpg" class="responsive-img" alt="pwn库函数">
                         
-                        <span class="card-title">pwn一点一点概括</span>
+                        <span class="card-title">pwn库函数</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -756,7 +939,7 @@
         
         <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge right-badge text-color">
-                本篇&nbsp;<i class="far fa-dot-circle"></i>
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
                 <a href="/2021/06/20/hello-world/">
@@ -786,7 +969,6 @@
                         </span>
                     </div>
                 </div>
-
                 
             </div>
         </div>

